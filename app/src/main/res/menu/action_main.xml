@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:appcompat="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/action_settings"
+        android:title="@string/settings"
+        appcompat:showAsAction="always"
+        android:icon="@drawable/ic_settings_white_32dp"/>
+
+    <item android:id="@+id/action_barcode"
+        android:title="@string/barcode"
+        appcompat:showAsAction="always"
+        android:icon="@drawable/ic_camera_white_32dp"/>
+
+</menu>
