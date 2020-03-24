@@ -1,7 +1,6 @@
 package systems.bitsense.barcodescanner
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -9,16 +8,19 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
 import kotlinx.android.synthetic.main.activity_main.*
-import java.lang.UnsupportedOperationException
 
 class MainActivity : AppCompatActivity() {
 
     var scannedResult: String = ""
     var defaultUri: String = ""
     var DEFAULT_URI_KEY = "uri"
+    lateinit var mAdView : AdView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,15 +33,13 @@ class MainActivity : AppCompatActivity() {
         if (sharedPref.checkKey(DEFAULT_URI_KEY)) {
             defaultUri = sharedPref.getValueString(DEFAULT_URI_KEY).toString()
             til_barcode.setHint(defaultUri)
-            loadWebPage(defaultUri)
-        }else{
-            Toast.makeText(this@MainActivity,R.string.msg_no_default_uri,Toast.LENGTH_SHORT).show()
         }
 
-        btn_uri.setOnClickListener {
-            Toast.makeText(this@MainActivity,"scanned barcode:" + et_barcode.text.toString(),Toast.LENGTH_SHORT).show()
+        btn_clear.setOnClickListener {
+            et_barcode.setText("")
         }
 
+        initMobAd()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -50,11 +50,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_settings -> {
-//            msgShow("Settings")
-            val intent = Intent(this, SettingsActivity::class.java)
-            startActivity(intent)
-            true
+        R.id.action_share -> {
+//            shareApp(R.string.app_share_msg.toString())
+
+            if(!et_barcode.text.toString().equals(R.string.err_scan_failed.toString(),true) &&
+                !et_barcode.text.toString().equals("")){
+                    shareBarcode("new scanned barcode", et_barcode.text.toString())
+                    true
+            }else{
+                Toast.makeText(this, R.string.msg_no_data, Toast.LENGTH_LONG).show()
+                true
+            }
         }
         R.id.action_barcode -> {
             run {
@@ -91,7 +97,7 @@ class MainActivity : AppCompatActivity() {
     fun addListeners() {
         et_barcode.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
-                scannedResult =  removeUriPref(et_barcode.text.toString())
+                scannedResult =  et_barcode.text.toString()
             }
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
@@ -105,41 +111,55 @@ class MainActivity : AppCompatActivity() {
         if(result != null){
 
             if(result.contents != null){
-                et_barcode.setText(removeUriPref(result.contents))
+                et_barcode.setText(result.contents)
             } else {
-                et_barcode.setText("scan failed")
+                et_barcode.setText(R.string.err_scan_failed)
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)
         }
     }
 
-    @Throws(UnsupportedOperationException::class)
-    fun buildUri(myuri: String): Uri{
-        val builder = Uri.Builder()
-        builder.scheme("https")
-            .authority(myuri)
-
-        return builder.build()
-    }
-
-    fun removeUriPref(uriPref: String) : String {
-
-        return uriPref.replace("http://","")
-            .replace("https://", "")
-    }
-
-    fun loadWebPage(def_uri: String){
-        val product : String = et_barcode.text.toString()
-        webview.loadUrl("")
-        val uri: Uri
-
+    private fun shareApp(shareSubject: String) {
         try {
-            uri = buildUri(def_uri)
-            Toast.makeText(this@MainActivity, uri.toString(),Toast.LENGTH_SHORT).show()
-            webview.loadUrl(uri.toString())
-        }catch (e: UnsupportedOperationException){
-            e.printStackTrace()
+            val shareIntent = Intent(Intent.ACTION_SEND)
+            shareIntent.type = "text/plain"
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, shareSubject)
+            var shareMessage = "\nGive this password manager app a try - :\n\n"
+            shareMessage =
+                """
+                ${shareMessage}https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}
+                
+                """.trimIndent()
+            shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage)
+            startActivity(Intent.createChooser(shareIntent, "Share Using"))
+        } catch (e: Exception) {
+            //e.toString();
         }
+    }
+
+    fun shareBarcode(shareSubject: String?, barcode: String?) {
+        try {
+            val shareIntent = Intent(Intent.ACTION_SEND)
+            shareIntent.type = "text/plain"
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, shareSubject)
+            shareIntent.putExtra(Intent.EXTRA_TEXT, barcode)
+            startActivity(
+                Intent.createChooser(
+                    shareIntent,
+                    resources.getString(R.string.share_barcode)
+                )
+            )
+        } catch (e: java.lang.Exception) {
+            //e.toString();
+        }
+    }
+
+    private fun initMobAd() {
+        MobileAds.initialize(this, getString(R.string.admob_app_id))
+        mAdView = findViewById(R.id.adv_main)
+        val adRequest = AdRequest.Builder().build()
+        mAdView.loadAd(adRequest)
+
     }
 }

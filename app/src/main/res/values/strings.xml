@@ -3,8 +3,17 @@
     <string name="settings">Settings</string>
     <string name="barcode">Barcode</string>
     <string name="uri_default">www</string>
-    <string name="btn_uri">Send</string>
+    <string name="btn_clear">Clear</string>
     <string name="btn_save">Save</string>
     <string name="msg_data_stored">Data Stored</string>
     <string name="msg_no_default_uri">No default uri defined!</string>
+    <string name="share">Share</string>
+    <string name="app_share_msg">Scan barcode</string>
+    <string name="share_barcode">Share using...</string>
+    <string name="err_scan_failed">Scan failed!</string>
+    <string name="msg_no_data">Please scan a barcode first!</string>
+    <string name="hint_scanned_barcode">Scanned Barcode</string>
+    <string name="admob_app_id">ca-app-pub-9117739969394168~9044127954</string>
+    <string name="admob_unit_main_id">ca-app-pub-9117739969394168/1073019033</string>
+    <string name="admob_test_id">ca-app-pub-3940256099942544/6300978111</string>
 </resources>
